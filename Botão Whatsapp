@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+    <style>
+        /* Estilos para o botão flutuante do WhatsApp */
+        .whatsapp-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #25d366;
+            color: #fff;
+            padding: 10px 15px;
+            border-radius: 50%;
+            text-align: center;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        /* Estilos para a janela de conversa simulada */
+        .conversation-container {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            right: 70px;
+            width: 300px;
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            z-index: 9999;
+        }
+
+        .conversation-header {
+            background-color: #25d366;
+            color: #fff;
+            padding: 10px;
+            font-weight: bold;
+            display: flex;
+            align-items: center; /* Centralizar verticalmente */
+        }
+
+        .conversation-header img {
+            margin-right: 10px; /* Espaçamento entre a imagem e o texto */
+            width: 50px; /* Largura da imagem */
+            height: 50px; /* Altura da imagem */
+            border-radius: 50%; /* Arredondar a imagem */
+        }
+
+        .conversation-messages {
+            padding: 10px;
+            max-height: 300px;
+            overflow-y: scroll;
+        }
+
+        .message {
+            padding: 8px 12px;
+            margin: 5px;
+            border-radius: 5px;
+        }
+
+        .received {
+            background-color: #e1ffc7; /* Cor de fundo para mensagens recebidas */
+            text-align: left;
+        }
+
+        .sent {
+            background-color: #d3f3ff; /* Cor de fundo para mensagens enviadas */
+            text-align: right;
+        }
+
+        .conversation-input {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-top: 1px solid #ccc;
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+<body>
+    <!-- Botão flutuante do WhatsApp -->
+    <div class="whatsapp-button" id="whatsapp-button">
+        <i class="fa fa-whatsapp"></i>
+    </div>
+
+    <!-- Janela de conversa simulada -->
+    <div class="conversation-container" id="conversation-container">
+        <div class="conversation-header">
+            <img src="https://lh3.googleusercontent.com/u/0/drive-viewer/AITFw-w0gJQqeKzm8C-0G9ZuUNFWLO-GCh1QreFL2vVyf4omlOo0iJl9ojR_rp76UEccf3yGlWQZlVa7NhPpcVQvKewZgbfDVw=w1280-h651" alt="Logo da Loja do Ponto">
+            Loja do Ponto<br>online
+        </div>
+        <div class="conversation-messages" id="conversation-messages">
+            <!-- Pergunta inicial -->
+            <div class="message received">
+                Olá! Que bom te ver por aqui. <br>Por gentileza, nos informe os dados abaixo:
+            </div>
+        </div>
+        <input type="text" class="conversation-input" id="conversation-input" placeholder="Digite sua resposta">
+    </div>
+
+    <script>
+        const conversationContainer = document.getElementById("conversation-container");
+        const conversationMessages = document.getElementById("conversation-messages");
+        const conversationInput = document.getElementById("conversation-input");
+
+        const questions = [
+            "<img src='LINK/IMAGEM/MENSAGEM' alt='Ícone de pergunta'> Qual é o seu nome?",
+            "<img src='LINK/IMAGEM/MENSAGEM' alt='Ícone de pergunta'> Qual é o seu e-mail?",
+            "<img src='LINK/IMAGEM/MENSAGEM' alt='Ícone de pergunta'> Como posso ajudar?"
+        ];
+
+        let currentQuestionIndex = 0;
+        let userInfo = {
+            nome: "",
+            email: "",
+            telefone: ""
+        };
+
+        // Função para adicionar uma mensagem à conversa
+        function addMessage(message, sender) {
+            const messageElement = document.createElement("div");
+            messageElement.className = `message ${sender}`;
+            messageElement.innerHTML = message;
+            conversationMessages.appendChild(messageElement);
+        }
+
+        // Event listener para o botão flutuante do WhatsApp
+        document.getElementById("whatsapp-button").addEventListener("click", function () {
+            conversationContainer.style.display = "block";
+            askNextQuestion();
+        });
+
+        // Função para fazer a próxima pergunta
+        function askNextQuestion() {
+            if (currentQuestionIndex < questions.length) {
+                addMessage(questions[currentQuestionIndex], "received");
+                currentQuestionIndex++;
+            } else {
+                // Todas as perguntas foram feitas, abrir a API do WhatsApp
+                openWhatsAppAPI();
+            }
+        }
+
+        // Event listener para a entrada de texto da conversa
+        conversationInput.addEventListener("keyup", function (event) {
+            if (event.key === "Enter") {
+                const userMessage = conversationInput.value;
+                addMessage(userMessage, "sent");
+                conversationInput.value = "";
+
+                // Armazenar informações fornecidas pelo usuário
+                if (currentQuestionIndex === 1) {
+                    userInfo.nome = userMessage;
+                } else if (currentQuestionIndex === 2) {
+                    userInfo.email = userMessage;
+                } else if (currentQuestionIndex === 3) {
+                    userInfo.telefone = userMessage;
+                }
+
+                // Continuar com a próxima pergunta
+                askNextQuestion();
+            }
+        });
+
+        // Função para abrir a API do WhatsApp
+        function openWhatsAppAPI() {
+            const { nome, email, telefone } = userInfo;
+            const whatsappMessage = `Nome: ${nome}\nEmail: ${email}\nPergunta: ${telefone}`;
+            const whatsappLink = `https://api.whatsapp.com/send/?phone=5541997589032&text=${encodeURIComponent(whatsappMessage)}`;
+            window.open(whatsappLink, '_blank');
+            conversationContainer.style.display = "none";
+        }
+    </script>
+</body>
+</html>
